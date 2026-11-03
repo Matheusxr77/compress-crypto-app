@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Reversão{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <span class="eyebrow">RECUPERAÇÃO</span>
+    <h1 class="h2 mt-2">Reverter um arquivo</h1>
+    <p class="text-secondary">Informe a chave Fernet quando o arquivo tiver criptografia localizada. Para arquivos sem palavras-chave, qualquer chave válida de formato Fernet não é necessária.</p>
+</div>
+<form method="post" class="card app-card card-body mb-4 p-4">
+    <label class="form-label" for="doc_id">Arquivo processado</label>
+    <select class="form-select mb-3" id="doc_id" name="doc_id" required>
+        {% for document in documents %}
+        <option value="{{ document.doc_id }}">{{ document.filename }} — {{ document.doc_id }}</option>
+        {% endfor %}
+    </select>
+    <label class="form-label" for="method">Método</label>
+    <select class="form-select mb-3" id="method" name="method" required>
+        <option value="Todos">Todos (reverter e validar em paralelo)</option>
+        {% for document in documents %}
+            {% for method in document.methods %}<option value="{{ method }}">{{ method }}</option>{% endfor %}
+        {% endfor %}
+    </select>
+    <label class="form-label" for="key">Chave Fernet</label>
+    <input class="form-control mb-3" id="key" name="key" type="password" placeholder="Deixe vazio se não houve criptografia">
+    <button class="btn btn-primary" type="submit">Reverter arquivo</button>
+</form>
+{% if result %}
+<div class="card app-card card-body p-4">
+    <h5>Texto recuperado</h5>
+    <pre class="preview">{{ result.restored_text }}</pre>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-success" href="{{ url_for('reversal.download', doc_id=result.doc_id, method=result.method) }}">Baixar arquivo reconstruído</a>
+        {% if result.methods %}
+        <a class="btn btn-outline-success" href="{{ url_for('reversal.download', doc_id=result.doc_id, method='Todos') }}">Baixar todos (ZIP)</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

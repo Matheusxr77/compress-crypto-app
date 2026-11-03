@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Métricas e Dashboard{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <span class="eyebrow">OBSERVABILIDADE</span>
+    <h1 class="h2 mt-2">Métricas e desempenho</h1>
+    <p class="text-secondary">Acompanhe o custo de compressão, reversão e throughput por algoritmo.</p>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="metric-card"><span>Registros</span><strong>{{ metrics|length }}</strong></div></div>
+    <div class="col-md-4"><div class="metric-card"><span>Algoritmos avaliados</span><strong>{{ dashboard|length }}</strong></div></div>
+    <div class="col-md-4"><div class="metric-card"><span>Modo de execução</span><strong>Concorrente</strong></div></div>
+</div>
+<div class="card app-card mb-4"><div class="card-body"><canvas id="metricsChart" height="100"></canvas></div></div>
+<div class="card app-card mb-4"><div class="card-body d-flex flex-wrap align-items-center gap-2">
+    <label class="text-secondary small" for="metricPair">Comparar tamanhos:</label>
+    <select class="form-select form-select-sm metric-pair-select" id="metricPair">
+        <option value="all">Todos</option>
+        <option value="original-compressed">Original e comprimido</option>
+        <option value="original-encrypted">Original e criptografado</option>
+        <option value="encrypted-compressed">Criptografado e comprimido</option>
+    </select>
+</div></div>
+<div class="card app-card"><div class="card-body table-responsive">
+<table class="table table-striped" id="metricsTable">
+<thead><tr><th>Metodo</th><th class="pair-column pair-all pair-original-compressed pair-original-encrypted">Original</th><th class="pair-column pair-all pair-original-encrypted pair-encrypted-compressed">Criptografado</th><th class="pair-column pair-all pair-original-compressed pair-encrypted-compressed">Comprimido</th><th class="pair-column pair-all pair-original-compressed">Razao O/C</th><th class="pair-column pair-all pair-original-encrypted">Razao O/E</th><th class="pair-column pair-all pair-encrypted-compressed">Razao E/C</th><th class="pair-column pair-all pair-original-compressed">Saving O/C</th><th class="pair-column pair-all pair-original-encrypted">Saving O/E</th><th class="pair-column pair-all pair-encrypted-compressed">Saving E/C</th><th>Memoria pico</th></tr></thead>
+<tbody>
+{% for item in dashboard %}
+<tr><td>{{ item.method }}</td><td class="pair-column pair-all pair-original-compressed pair-original-encrypted">{{ item.original_bytes }}</td><td class="pair-column pair-all pair-original-encrypted pair-encrypted-compressed">{{ item.encrypted_file_bytes }}</td><td class="pair-column pair-all pair-original-compressed pair-encrypted-compressed">{{ item.compressed_bytes }}</td><td class="pair-column pair-all pair-original-compressed">{{ "%.3f"|format(item.ratio_original_compressed) }}</td><td class="pair-column pair-all pair-original-encrypted">{{ "%.3f"|format(item.ratio_original_encrypted) }}</td><td class="pair-column pair-all pair-encrypted-compressed">{{ "%.3f"|format(item.ratio_encrypted_compressed) }}</td><td class="pair-column pair-all pair-original-compressed">{{ "%.2f"|format(item.space_saving_original_percent) }}%</td><td class="pair-column pair-all pair-original-encrypted">{{ "%.2f"|format(item.space_saving_original_encrypted_percent) }}%</td><td class="pair-column pair-all pair-encrypted-compressed">{{ "%.2f"|format(item.space_saving_encrypted_percent) }}%</td><td>{{ item.peak_memory_bytes }}</td></tr>
+{% else %}<tr><td colspan="11" class="text-muted">Ainda não há métricas.</td></tr>{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+<div class="card app-card mt-4">
+<div class="card-body">
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+<div><span class="eyebrow">SIMULADOR DE ARMAZENAMENTO</span><h2 class="h5 mt-2">Estime sua economia</h2><p class="text-secondary small mb-0">Informe o volume original e o custo mensal por GB.</p></div>
+<div class="storage-inputs d-flex gap-2"><div><label class="form-label small" for="storageAmount">Volume original (GB)</label><input class="form-control form-control-sm" id="storageAmount" type="number" min="0" step="0.01" value="100"></div><div><label class="form-label small" for="storageCost">Custo por GB/mês (US$)</label><input class="form-control form-control-sm" id="storageCost" type="number" min="0" step="0.0001" value="0.02"></div></div>
+</div>
+<div class="row g-3 mt-2"><div class="col-md-4"><div class="metric-card"><span>Sem compressão</span><strong id="storageOriginal">-</strong></div></div><div class="col-md-4"><div class="metric-card"><span>Menor armazenamento</span><strong id="storageBest">-</strong></div></div><div class="col-md-4"><div class="metric-card"><span>Economia mensal</span><strong id="storageSaving">-</strong></div></div></div>
+<div class="table-responsive mt-4"><table class="table table-sm table-striped" id="storageTable"><thead><tr><th>Algoritmo</th><th>Razão média</th><th>Tamanho armazenado</th><th>Economia</th><th>Custo mensal</th></tr></thead><tbody></tbody></table></div>
+</div></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const dashboard = {{ dashboard | tojson }};
+const storageAmount = document.getElementById("storageAmount");
+const storageCost = document.getElementById("storageCost");
+const storageBody = document.querySelector("#storageTable tbody");
+const sizeText = value => value >= 1024 ? (value / 1024).toFixed(2) + " TB" : value.toFixed(2) + " GB";
+const moneyText = value => value.toLocaleString("en-US", {style: "currency", currency: "USD"});
+function updateStorage() {
+    const original = Number(storageAmount.value) || 0;
+    const cost = Number(storageCost.value) || 0;
+    const rows = dashboard.map(item => {
+        const ratio = item.original_bytes ? item.compressed_bytes / item.original_bytes : 1;
+        const stored = original * ratio;
+        return {...item, stored, saving: original - stored, monthly: stored * cost};
+    }).sort((a, b) => a.stored - b.stored);
+    storageBody.innerHTML = rows.map(item => `<tr><td>${item.method}</td><td>${item.ratio_original_compressed.toFixed(3)}</td><td>${sizeText(item.stored)}</td><td>${sizeText(item.saving)}</td><td>${moneyText(item.monthly)}</td></tr>`).join("");
+    document.getElementById("storageOriginal").textContent = sizeText(original);
+    document.getElementById("storageBest").textContent = rows.length ? sizeText(rows[0].stored) : "-";
+    document.getElementById("storageSaving").textContent = rows.length ? moneyText(original * cost - rows[0].monthly) : "-";
+}
+storageAmount.addEventListener("input", updateStorage);
+storageCost.addEventListener("input", updateStorage);
+updateStorage();
+const pairSelect = document.getElementById("metricPair");
+pairSelect.addEventListener("change", () => {
+    const selected = pairSelect.value;
+    document.querySelectorAll("#metricsTable .pair-column").forEach(cell => {
+        const visible = cell.classList.contains("pair-" + selected);
+        cell.classList.toggle("d-none", !visible);
+    });
+});
+new Chart(document.getElementById("metricsChart"), {
+    type: "bar",
+    data: {
+        labels: dashboard.map(item => item.method),
+        datasets: [
+            {label: "Compressão (s)", data: dashboard.map(item => item.compression), backgroundColor: "#4f46e5"},
+            {label: "Descompactação (s)", data: dashboard.map(item => item.decompression), backgroundColor: "#14b8a6"}
+        ]
+    },
+    options: {responsive: true, plugins: {legend: {position: "bottom"}}, scales: {y: {beginAtZero: true}}}
+});
+</script>
+{% endblock %}

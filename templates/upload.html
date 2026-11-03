@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Processamento — Upload{% endblock %}
+{% block content %}
+<section class="hero-panel mb-4 mb-lg-5">
+    <div>
+        <span class="eyebrow">PIPELINE SEGURO · LOSSLESS</span>
+        <h1 class="display-6 fw-bold mt-2">Proteja e compacte seus documentos.</h1>
+        <p class="lead text-secondary mb-0">Criptografe palavras-chave, compare algoritmos e reverta seus arquivos com rastreabilidade completa.</p>
+    </div>
+    <div class="hero-badge"><span class="status-dot"></span> Sistema operacional</div>
+</section>
+<div class="card app-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><span class="step-badge">01</span> Processamento central</span>
+        <span class="text-secondary small">TXT · PDF · DOCX</span>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" class="row g-3">
+            <div class="col-md-6">
+                <label for="arquivo" class="form-label">Arquivo (.txt, .pdf, .docx)</label>
+                <input class="form-control form-control-lg" type="file" id="arquivo" name="arquivo"
+                       accept=".txt,.pdf,.docx" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="metodo_compressao" class="form-label">Método de compressão</label>
+                <select class="form-select form-select-lg" id="metodo_compressao" name="metodo_compressao">
+                    <option value="Todos">Todos (executar em paralelo)</option>
+                    {% for metodo in compression_methods %}
+                    <option value="{{ metodo }}">{{ metodo }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">“Todos” executa os codecs em paralelo.</div>
+            </div>
+
+            <div class="col-12">
+                <label for="palavras_chave" class="form-label">Palavras-chave</label>
+                <textarea class="form-control" id="palavras_chave" name="palavras_chave" rows="2"
+                          placeholder="Opcional. Ex.: confidencial, CPF, senha"></textarea>
+                <div class="form-text">
+                    Opcional: quando preenchido, somente os valores localizados são
+                    cifrados. Sem palavras-chave, o arquivo segue diretamente para
+                    compressão e pode ser descompactado normalmente.
+                </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary btn-lg px-4">
+                    Upload e processar <span aria-hidden="true">→</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if result %}
+<div class="card app-card mb-4 border-success">
+    <div class="card-header bg-success-subtle">Resultado do processamento — id {{ result.doc_id }}</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Arquivo</dt>
+            <dd class="col-sm-9">{{ result.filename }}</dd>
+
+            <dt class="col-sm-3">Palavras-chave informadas</dt>
+            <dd class="col-sm-9">{{ result.keywords | join(", ") }}</dd>
+
+            <dt class="col-sm-3">Blocos localizados e cifrados</dt>
+            <dd class="col-sm-9">{{ result.total_blocos }}</dd>
+
+            <dt class="col-sm-3">Método de compressão escolhido</dt>
+            <dd class="col-sm-9">
+                {{ result.selected_method }}
+            </dd>
+        </dl>
+        <p><strong>Métodos executados:</strong> {{ result.compression_methods | join(", ") }}</p>
+
+        <hr>
+
+        {% if result.keywords %}
+        <div class="alert alert-warning mb-3">
+            <strong>Chave de criptografia — guarde agora:</strong> ela não é
+            armazenada pelo sistema e será exigida na Aba 3 quando houver
+            criptografia localizada.
+            <code class="d-block mt-2 user-select-all">{{ result.chave }}</code>
+        </div>
+        {% else %}
+        <div class="alert alert-info mb-3">
+            Nenhuma palavra-chave foi informada. O arquivo foi apenas comprimido;
+            não é necessário fornecer uma chave na reversão.
+        </div>
+        {% endif %}
+
+        {% if result.blocos %}
+        <h6>Blocos localizados e cifrados</h6>
+        <div class="table-responsive mb-3">
+            <table class="table table-sm table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Palavra-chave encontrada</th>
+                        <th>Texto original do bloco</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bloco in result.blocos %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><code>{{ bloco.keyword_matched }}</code></td>
+                        <td>{{ bloco.original_text }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Texto extraído (original)</h6>
+                <pre class="bg-light p-2 border" style="max-height:300px; overflow:auto; white-space: pre-wrap;">{{ result.texto_original }}</pre>
+            </div>
+            <div class="col-md-6">
+                <h6>Texto após criptografia localizada</h6>
+                <pre class="bg-light p-2 border" style="max-height:300px; overflow:auto; white-space: pre-wrap;">{{ result.texto_cifrado }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

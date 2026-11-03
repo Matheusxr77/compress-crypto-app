@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Listagem e Inspeção{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <span class="eyebrow">RASTREABILIDADE</span>
+    <h1 class="h2 mt-2">Inspeção de arquivos</h1>
+    <p class="text-secondary">Consulte cada etapa do pipeline sem expor o conteúdo fora da aplicação.</p>
+</div>
+<div class="card app-card"><div class="card-body table-responsive">
+    <table class="table table-striped align-middle">
+        <thead><tr><th>Arquivo</th><th>ID</th><th>Métodos</th><th></th></tr></thead>
+        <tbody>
+        {% for item in documents %}
+            <tr>
+                <td>{{ item.filename }}</td><td><code>{{ item.doc_id }}</code></td>
+                <td>{{ item.methods | join(", ") }}</td>
+                <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('inspection.detail', doc_id=item.doc_id) }}">Inspecionar</a></td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="text-muted">Nenhum arquivo processado.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% if document %}
+<div class="row g-3 mt-2">
+    <div class="col-md-6"><h5>Texto extraído</h5><pre class="preview">{{ document.extracted_text }}</pre></div>
+    <div class="col-md-6"><h5>Texto com criptografia localizada</h5><pre class="preview">{{ document.encrypted_text }}</pre></div>
+</div>
+<h5 class="mt-4">Pacotes comprimidos (primeiros 128 bytes)</h5>
+{% for method, preview in document.packages_preview.items() %}
+<div class="mb-2"><strong>{{ method }}</strong><pre class="preview">{{ preview }}</pre></div>
+{% endfor %}
+{% endif %}
+{% endblock %}

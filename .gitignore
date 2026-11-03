@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+.venv/
+venv/
+env/
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Artefatos gerados pela aplicação
+storage/
+*.csv
+*.log
+
+# IDE e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

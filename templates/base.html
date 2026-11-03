@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Compressão &amp; Criptografia de Arquivos{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-dark app-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('upload.index') }}">
+            <span class="brand-mark">C</span>
+            <span>Crypto<span class="brand-accent">Compress</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                aria-controls="navMenu" aria-expanded="false" aria-label="Alternar navegação">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_tab == 'upload' %}active{% endif %}" href="{{ url_for('upload.index') }}">
+                        <span class="nav-index">01</span> Processar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_tab == 'inspecao' %}active{% endif %}" href="{{ url_for('inspection.index') }}">
+                        <span class="nav-index">02</span> Inspecionar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_tab == 'reversao' %}active{% endif %}" href="{{ url_for('reversal.index') }}">
+                        <span class="nav-index">03</span> Reverter
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_tab == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+                        <span class="nav-index">04</span> Métricas
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="app-shell">
+<aside class="app-sidebar">
+    <div class="sidebar-brand">
+        <span class="brand-mark">C</span>
+        <div><strong>CryptoCompress</strong><small>Secure pipeline</small></div>
+    </div>
+    <div class="sidebar-label">WORKSPACE</div>
+    <ul class="navbar-nav sidebar-nav">
+        <li><a class="nav-link {% if active_tab == 'upload' %}active{% endif %}" href="{{ url_for('upload.index') }}"><span class="nav-index">01</span> Processar</a></li>
+        <li><a class="nav-link {% if active_tab == 'inspecao' %}active{% endif %}" href="{{ url_for('inspection.index') }}"><span class="nav-index">02</span> Inspecionar</a></li>
+        <li><a class="nav-link {% if active_tab == 'reversao' %}active{% endif %}" href="{{ url_for('reversal.index') }}"><span class="nav-index">03</span> Reverter</a></li>
+        <li><a class="nav-link {% if active_tab == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard.index') }}"><span class="nav-index">04</span> Métricas</a></li>
+    </ul>
+</aside>
+<main class="container py-4 py-lg-5 app-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,6 @@
+Seguradora Horizonte S.A.
+Apólice: Seguro Residencial Essencial
+Segurado: Ana Beatriz de Souza
+CPF: 529.847.316-04
+Este documento é um exemplo para testes do fluxo de extração, criptografia localizada, compressão e reversão.
+A cobertura contratada inclui assistência residencial 24 horas, conforme as condições gerais da apólice.
