@@ -20,6 +20,31 @@ compressão lossless, reversão e análise de desempenho em arquivos `.txt`, `.p
   risco de expansão e validação lossless.
 - Dashboard com tabela e gráfico Chart.js.
 
+## Apresentação do App
+
+Use este roteiro para demonstrar o fluxo completo do aplicativo:
+
+1. **Apresentação:** explique que o CryptoCompress extrai texto, criptografa
+   palavras-chave, compara codecs lossless e permite reverter os arquivos.
+2. **Processamento:** na aba **Processar**, selecione um `.txt`, `.pdf` ou
+   `.docx`, escolha um algoritmo ou **Todos** e, opcionalmente, informe
+   palavras-chave como `CPF` ou `confidencial`.
+3. **Resultado e chave:** mostre o identificador do documento, os blocos
+   localizados e a chave Fernet. Explique que a chave não é armazenada e deve
+   ser guardada para a reversão.
+4. **Inspeção:** abra a aba **Inspecionar** para visualizar o texto extraído,
+   o texto com criptografia localizada e o início dos pacotes comprimidos.
+5. **Comparação:** no dashboard de **Métricas**, compare tamanho original,
+   criptografado e comprimido, além de razão, economia, tempo e memória por
+   algoritmo.
+6. **Simulador:** informe um volume e alterne entre GB e TB no simulador para
+   estimar armazenamento, custo mensal e economia.
+7. **Reversão:** na aba **Reverter**, selecione o documento e o método, informe
+   a chave quando necessário e valide o texto recuperado. Em seguida, baixe o
+   arquivo reconstruído ou o ZIP com todos os métodos.
+8. **Limpeza:** encerre a demonstração usando **Limpar arquivos armazenados**
+   no dashboard para remover os artefatos e zerar as métricas.
+
 ## Execução local
 
 Requer Python 3.11 ou superior.

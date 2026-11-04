@@ -60,3 +60,11 @@ def read_metrics(folder: str) -> List[Dict[str, str]]:
         return []
     with open(path, newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
+
+
+def clear_metrics(folder: str) -> None:
+    """Remove o arquivo de métricas para iniciar uma nova medição."""
+    path = metrics_path(folder)
+    with _LOCK:
+        if os.path.isfile(path):
+            os.remove(path)
